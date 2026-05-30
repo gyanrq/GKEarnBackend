@@ -1,0 +1,10 @@
+target/
+.git/
+.idea/
+.vscode/
+uploads/
+logs/
+*.log
+*.pid
+.env
+.DS_Store

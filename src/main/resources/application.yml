@@ -1,0 +1,193 @@
+spring:
+  application:
+    name: EarnX-3
+
+  profiles:
+    active: dev
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:earnx3}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:changeme}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      idle-timeout: 30000
+      connection-timeout: 20000
+      leak-detection-threshold: 60000
+      pool-name: EarnXHikariPool
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  cache:
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=180s
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:change@example.com}
+    password: ${MAIL_PASSWORD:changeme}
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_WEB_CLIENT_ID:your-client-id-here}
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+server:
+  port: ${PORT:8080}
+  address: 0.0.0.0
+  forward-headers-strategy: native
+  tomcat:
+    remoteip:
+      remote-ip-header: x-forwarded-for
+      protocol-header: x-forwarded-proto
+      internal-proxies: 10\.\d+\.\d+\.\d+|172\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|127\.0\.0\.1
+    threads:
+      max: 20
+      min-spare: 5
+
+logging:
+  level:
+    root: INFO
+    com.myworld: DEBUG
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui/index.html
+    try-it-out-enabled: true
+    filter: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+  show-actuator: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.profiles.active:dev}
+  tracing:
+    sampling:
+      probability: 1.0
+
+app:
+  ipinfo:
+    token: ""
+  timezone: "+05:30"
+
+  api:
+    dev-server-url: ${APP_DEV_SERVER_URL:http://localhost:8080}
+    prod-server-url: ${APP_PROD_SERVER_URL:https://gkearn.online}
+
+  google:
+    client-ids: ${GOOGLE_CLIENT_IDS:your-web-client-id.apps.googleusercontent.com}
+
+  security:
+    login:
+      max-attempts: 5
+      block-minutes: 15
+
+  jwt:
+    secret: ${JWT_SECRET:please-set-a-strong-secret-in-env-min-32-chars}
+    expiration-ms: ${JWT_EXPIRY_MS:86400000}
+    refresh-expiry-days: ${JWT_REFRESH_DAYS:7}
+
+  reward:
+    conversion-rate: 10
+
+  otp:
+    rate-window-minutes: 15
+    rate-limit: 3
+    expiry-minutes: 5
+    max-attempts: 3
+
+  referral:
+    prefix: "EX-"
+    bonus-credits: ${REFERRAL_BONUS_CREDITS:100}
+    referred-bonus-credits: ${REFERRED_BONUS_CREDITS:50}
+
+  payout:
+    max-redeems-per-day: 3
+    max-rupees-per-day: 500
+
+  fraud:
+    scoring:
+      hold-threshold: ${FRAUD_HOLD_THRESHOLD:200}
+      block-threshold: ${FRAUD_BLOCK_THRESHOLD:500}
+      max-shared-ip: ${FRAUD_MAX_SHARED_IP:3}
+      max-shared-device: ${FRAUD_MAX_SHARED_DEVICE:2}
+      fast-signup-seconds: ${FRAUD_FAST_SIGNUP_SECONDS:60}
+      multi-withdraw-24h: ${FRAUD_MULTI_WITHDRAW_24H:2}
+
+  mfa:
+    totp:
+      issuer: EarnX3
+    session:
+      expiry-minutes: 10
+
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
+
+  campaign:
+    max-daily-leads-per-user: ${MAX_DAILY_LEADS_PER_USER:5}
+
+  upload:
+    dir: ${UPLOAD_DIR:uploads}
+    base-url: ${APP_BASE_URL:http://localhost:8080}/api/files
+
+sms:
+  provider:
+    enabled: ${SMS_PROVIDER_ENABLED:false}
+  msg91:
+    auth-key: ${SMS_MSG91_AUTH_KEY:}
+    template-id: ${SMS_MSG91_TEMPLATE_ID:}
+    sender-id: ${SMS_MSG91_SENDER_ID:EARNXX}
+
+razorpay:
+  webhook:
+    secret: ${RAZORPAY_WEBHOOK_SECRET:change-me-in-prod}
+  key-id: ${RAZORPAY_KEY_ID:}
+  key-secret: ${RAZORPAY_KEY_SECRET:}
+  account-number: ${RAZORPAY_ACCOUNT_NUMBER:}
+  payout:
+    enabled: ${RAZORPAY_PAYOUT_ENABLED:false}

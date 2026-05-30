@@ -1,0 +1,59 @@
+# TEST profile — used by Testcontainers integration tests (@ActiveProfiles("test"))
+# Datasource is auto-overridden by @ServiceConnection from PostgreSQLContainer.
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/earnx_test
+    username: test
+    password: test
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+  # Disable Redis auto-config so CacheConfig fallback (ConcurrentMapCacheManager) activates
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: test@test.com
+    password: test
+
+logging:
+  level:
+    root: WARN
+    com.myworld: DEBUG
+    org.flywaydb: INFO
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+app:
+  jwt:
+    secret: test-secret-do-not-use-in-prod-must-be-32-chars-min
+    expiration-ms: 3600000
+    refresh-expiry-days: 1
+  otp:
+    bypass-in-dev: true
+  referral:
+    bonus-credits: 100
+    referred-bonus-credits: 50
+  campaign:
+    max-daily-leads-per-user: 5
+  cors:
+    allowed-origins: http://localhost:3000
+
+razorpay:
+  webhook:
+    secret: test-webhook-secret

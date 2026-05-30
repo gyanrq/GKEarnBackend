@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  FIX: Structured JSON logging with Logback + logstash-logback-encoder.
+
+  Dev profile  → human-readable colored console output (easier to read locally)
+  Prod profile → JSON output (queryable in Loki / Datadog / ELK / Cloudwatch)
+
+  JSON fields emitted per log line (prod):
+    @timestamp, level, logger, thread, message,
+    requestId  (from MDC — injected by JwtFilter)
+    userId     (from MDC — injected by JwtFilter)
+    traceId    (from Micrometer Tracing — auto-injected)
+    spanId     (from Micrometer Tracing — auto-injected)
+
+  Loki query examples:
+    {app="earnx"} | json | userId="42"
+    {app="earnx"} | json | level="ERROR"
+    {app="earnx"} | json | requestId="abc123def456"
+-->
+<configuration>
+
+    <springProperty scope="context" name="APP_NAME"  source="spring.application.name" defaultValue="earnx"/>
+    <springProperty scope="context" name="APP_ENV"   source="spring.profiles.active"  defaultValue="dev"/>
+
+    <!-- ── DEV: colored console output ──────────────────────────────────────── -->
+    <springProfile name="dev,test">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) [%thread] %cyan(%logger{36}) - %msg%n</pattern>
+            </encoder>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+        <logger name="com.myworld" level="DEBUG"/>
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+    </springProfile>
+
+    <!-- ── PROD: structured JSON output ──────────────────────────────────────── -->
+    <springProfile name="prod">
+        <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <!-- Add app name and env to every log line -->
+                <customFields>{"app":"${APP_NAME}","env":"${APP_ENV}"}</customFields>
+                <!-- Include MDC fields: requestId, userId (injected by JwtFilter) -->
+                <includeMdcKeyName>requestId</includeMdcKeyName>
+                <includeMdcKeyName>userId</includeMdcKeyName>
+                <!-- Include Micrometer traceId/spanId if present -->
+                <includeMdcKeyName>traceId</includeMdcKeyName>
+                <includeMdcKeyName>spanId</includeMdcKeyName>
+                <!-- Don't log stack traces as multi-line — keep JSON on one line -->
+                <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                    <maxDepthPerCause>10</maxDepthPerCause>
+                    <shortenedClassNameLength>20</shortenedClassNameLength>
+                    <rootCauseFirst>true</rootCauseFirst>
+                </throwableConverter>
+            </encoder>
+        </appender>
+        <root level="WARN">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </root>
+        <logger name="com.myworld" level="INFO"/>
+    </springProfile>
+
+</configuration>
